@@ -8,6 +8,12 @@ Automates the transfer of NICE CXone interaction data to Google Cloud for AI-dri
 - 🧠 Enable AI analysis through Google CCAI
 - 📊 Export enriched data to BigQuery for dashboards and reporting
 
-## 📁 Project Structure
+---
 
+## ⚙️ Features
 
+- 🔄 Pulls interaction data from NICE CXone using REST API  
+- 🧠 Routes data through Google CCAI for NLP and sentiment analysis  
+- 🗃️ Stores processed data in Google Cloud Storage (optional)  
+- 📤 Sends structured output to BigQuery for dashboarding  
+- 🔐 Uses `.env` for secure credential management
