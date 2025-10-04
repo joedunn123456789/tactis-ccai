@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCAI Insights Import Server</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <h1>CCAI Insights Import Server</h1>
+    <div class="login-container">
+        <div class="login-box">
+            <h2>Please enter your credentials to log in</h2>
+            <form action="">
+                <label for="first">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your Username" required>
+                <br>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your Password" required>
+            </form>
+            <br>
+            <button onclick="login()">Login</button>
+            <button onclick="logout()">Logout</button>
+            <br>
+            <button onclick="resetPassword()">Reset Password</button>
+            <br><br>
+            <span id="message"></span>
+        </div>
+    </div>
+</body>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/8.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.0/firebase-auth.js"></script>
+<script>
+    var config = {
+        apiKey: "AIzaSyBxgCbTNn-CZ7vnXvexvf5J-Aaxo5B4eEE",
+        authDomain: "tactis.firebaseapp.com",
+    };
+    firebase.initializeApp(config);
+    
+    var username = document.getElementById("username").value;
+    var password = document.getElementById("password").value;
+
+    function login() {
+        var email = document.getElementById("username").value;
+        var password = document.getElementById("password").value;
+
+        firebase.auth().signInWithEmailAndPassword(email, password).catch(error => {
+            console.log(JSON.stringify(error));
+            if (error.code === 'auth/internal-error' || error.code === 'auth/wrong-password') {
+                alert('Invalid username/password.  Please try again.');
+            } else if (error.code === 'auth/invalid-email') {
+                alert ('Please enter a valid email address.');
+            } else {
+                alert(error.message);
+            }
+        });
+    }
+
+    function logout() {
+        firebase.auth().signOut().then(function () {
+            console.log('Signed Out');
+        }, function (error) {
+            console.error('Sign Out Error', error);
+        });
+    }
+
+    firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+            document.getElementById("message").innerHTML = "Welcome, " + user.email;
+
+            const token = firebase.auth().currentUser.getIdToken().then(token => {
+                localStorage.setItem('token', token);
+            });
+
+            window.location.href = "/index.html";
+        } else {
+            document.getElementById("message").innerHTML = "No user signed in.";
+        }
+    });
+
+    function resetPassword() {
+        var email = document.getElementById("username").value;
+
+        firebase.auth().sendPasswordResetEmail(email).then(function () {
+            alert('A password reset email was sent to the email address you provided.');
+        }).catch(function (error) {
+            if (error.code === 'auth/invalid-email') {
+                alert ('Please enter a valid email address.');
+            } else
+            if (error.code === 'auth/invalid-email') {
+                alert ('Please enter a valid email address.');
+            } else {
+                alert (error.message);
+            }
+        });
+    }
+</script>
+
+</html>

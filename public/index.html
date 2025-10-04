@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCAI Insights Import Server</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <h1>CCAI Insights Import Server</h1>
+    <div id="message-container" class="message-container">
+        <ul id="messages"></ul>
+    </div>
+    <form id="form" action="">
+        <div class="button-container">
+            <div>
+                <button onclick="startServer()">Start</button>
+                <button onclick="stopServer()">Stop</button>
+                <button onclick="clearHistory()">Clear History</button>
+                Server Status: <span id="server-status">Disconnected</span>
+            </div>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </form>
+
+    <script src="https://www.gstatic.com/firebasejs/8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0/firebase-auth.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Firebase code
+        var config = {
+            apiKey: "AIzaSyBxgCbTNn-CZ7vnXvexvf5J-Aaxo5B4eEE",
+            authDomain: "tactis.firebaseapp.com",
+        };
+        firebase.initializeApp(config);
+
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+            }).catch(error => {
+                alert("Error signing out: ", error);
+            });
+        }
+
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+                // https://firebase.google.com/docs/reference/js/v8/firebase.User
+                var uid = user.uid;
+                const token = firebase.auth().currentUser.getIdToken().then(token => {
+                    localStorage.setItem('token', token);
+                });
+                // ...
+            } else {
+                window.location.href = '/login.html';
+            }
+        });
+
+        // Socket.io code
+        let msgContainer = document.getElementById("message-container");
+        const form = document.getElementById('form');
+        const messages = document.getElementById('messages');
+
+        const socket = io({
+            auth: {
+                token: localStorage.getItem('token')
+            }
+        });
+
+        socket.on('connect_error', (err) => {
+            if (err.message === 'Invalid token') {
+                alert('It looks like your token has expired.\nPlease log in again.');
+                logout();
+            }
+            const item = document.createElement('li');
+            item.textContent = err;
+            messages.appendChild(item);
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        });
+
+        socket.on('logMessage', (msg) => {
+            const item = document.createElement('li');
+            item.textContent = msg;
+            messages.appendChild(item);
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        });
+
+        socket.on('serverStatus', (status) => {
+            document.getElementById('server-status').textContent = status;
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+        });
+
+        function startServer() {
+            socket.emit('serverControl', 'start');
+        }
+
+        function stopServer() {
+            socket.emit('serverControl', 'stop');
+        }
+
+        function clearHistory() {
+            messages.innerHTML = '';
+        }
+    </script>
+</body>
+
+</html>
